@@ -8,7 +8,6 @@ library(ggthemes)
 library(ggpubr)
 
 # 1. VA Heat events by weather station 1970 - 2022 ####
-
 # Read in data and format data, add year column, select only May - Sept
 va_50 <-read.csv("VA_50.csv")
 va_50$Date <- as.Date(va_50$Date , format = "%m/%d/%y") # sometimes it is %Y-%m-%d
@@ -64,9 +63,7 @@ combo <- ggplot(summer_count_100_e, aes(x= Year, y = count))+
        subtitle="Humid and dry tropical days in Virginia since 1970",
        caption="Data from Spatial Synoptic Classification v3.0")
 
-
 # 2. VA heat events 2016 - 2020 ####
-
 # Read in VA heat data by station
 VA <- read.csv("VA_days.csv",header=T)
 
@@ -129,9 +126,7 @@ combo_va <- combo2 + plot_annotation(tag_levels = 'A')
 ggsave("VA Heat Events.png", plot = combo_va, device = "png", path = NULL, 
        scale = 1, width = 8.27, height = 6.54, units = "in", dpi = 800)
 
-
 # 3. VA extreme heat events 2016 - 2020 #####
-
 # Read in data
 VAEX <- read.csv("extreme1.csv")
 
@@ -168,7 +163,6 @@ VAEX_avgs <- VAEX_count %>%
     sd = sd(count))
 
 # 4. USA heat events 2016 - 2020 ####
-
 # Read in data
 USA_heat <- read.csv("USA_HEAT.csv",header = T)
 
@@ -258,7 +252,6 @@ ggsave("USA Heat Events.png", plot = combo_USA_heat, device = "png", path = NULL
        scale = 1, width = 6.28, height = 4.05, units = "in", dpi = 800)
 
 # 5. USA extreme heat events 2016 - 2020 ####
-
 # Read in data 
 USA_EX <- read.csv("USAEX.csv", header=T)
 
