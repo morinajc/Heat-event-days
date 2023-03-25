@@ -4,8 +4,69 @@ library(reshape2)
 library(dplyr)
 library(patchwork)
 library(lubridate)
+library(ggthemes)
+library(ggpubr)
 
-# 1. VA heat events ####
+# 1. VA Heat events by weather station 1970 - 2022 ####
+
+# Read in data and format data, add year column, select only May - Sept
+va_50 <-read.csv("VA_50.csv")
+va_50$Date <- as.Date(va_50$Date , format = "%m/%d/%y") # sometimes it is %Y-%m-%d
+va_50[,"Year"]<-format(va_50[,"Date"],"%Y")
+summer <- va_50 %>% 
+  filter(!lubridate::month(as.Date(Date)) %in% c(10,11, 12, 1, 2, 3, 4))
+
+# Convert df to long format and count events
+summer_long <- melt(summer, id.vars = c( "Date", "Year"), 
+                    variable.name = "Station")
+
+summer_count <- summer_long %>% 
+  filter(!is.na(value)) %>%
+  group_by(Station, Year) %>% 
+  summarise( 
+    n = n(),
+    count = sum(value))
+
+# Subset data, only include years where there was at least 100 days available, and exclude select dats for two stations missing data
+summer_count_100 <- subset(summer_count, n > 100 )
+summer_clean <-summer_count_100[!(summer_count_100$Station == "CHO" & summer_count_100$Year < 1999), ]         
+summer_clean2 <-summer_clean[!(summer_clean$Station == "NYG" & summer_clean$Year < 1985), ]         
+
+# Convert year to numeric
+summer_clean2$Year <-as.numeric(summer_clean2$Year)
+
+# Plot by station
+VA_50_plot <- ggplot(summer_clean2, aes(x=Year, y= count, group=1 ))+
+  geom_line()+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 45,vjust = 1, hjust=1,color="black"),
+        axis.text.y = element_text(color="black"),
+        panel.grid.minor.x = element_blank(),
+        legend.position = "none")+
+  facet_wrap(.~Station, ncol=3)+
+  labs(y = "Heat Event Days", x=" ")+
+  scale_y_continuous(expand = c(0,0),limits = c(0,120,30))+
+  stat_smooth(method = "lm",
+              formula = y ~ x,
+              geom = "smooth")+
+  stat_regline_equation()
+
+# Plot all counts by year
+combo <- ggplot(summer_count_100_e, aes(x= Year, y = count))+
+  geom_smooth()+
+  geom_point(shape = 21, fill = "white", color = "black", size=2)+
+  scale_y_continuous(expand = c(0,0),limits = c(0,120,30))+
+  theme_fivethirtyeight()+
+  scale_x_continuous(breaks=c(1970, 1980, 1990, 2000, 2010,2020))+
+  labs(x=" ",
+       y="Annual Heat Events (days)",
+       title="Summer heat events increased significantly after 2000",
+       subtitle="Humid and dry tropical days in Virginia since 1970",
+       caption="Data from Spatial Synoptic Classification v3.0")
+
+
+# 2. VA heat events 2016 - 2020 ####
+
 # Read in VA heat data by station
 VA <- read.csv("VA_days.csv",header=T)
 
@@ -59,16 +120,18 @@ VA_total_boxplot <- ggplot(VA,(aes(x = Year, y = n, group=Year)))+
   labs(y = " Heat Event Days ", x=" ")
   
 # combine into one figure
-combo <- VA_station_plot | (VA_total_plot / VA_total_boxplot ) 
+combo2 <- VA_station_plot | (VA_total_plot / VA_total_boxplot ) 
+
 # add letter
-combo_va <- combo + plot_annotation(tag_levels = 'A')
+combo_va <- combo2 + plot_annotation(tag_levels = 'A')
 
 # Save figure
 ggsave("VA Heat Events.png", plot = combo_va, device = "png", path = NULL, 
        scale = 1, width = 8.27, height = 6.54, units = "in", dpi = 800)
 
 
-# 2. VA extreme heat events  #####
+# 3. VA extreme heat events 2016 - 2020 #####
+
 # Read in data
 VAEX <- read.csv("extreme1.csv")
 
@@ -104,7 +167,8 @@ VAEX_avgs <- VAEX_count %>%
     mean = mean(count),
     sd = sd(count))
 
-# 3. USA heat events ####
+# 4. USA heat events 2016 - 2020 ####
+
 # Read in data
 USA_heat <- read.csv("USA_HEAT.csv",header = T)
 
@@ -193,7 +257,8 @@ combo_USA_heat <- combo_USA + plot_annotation(tag_levels = 'A')
 ggsave("USA Heat Events.png", plot = combo_USA_heat, device = "png", path = NULL, 
        scale = 1, width = 6.28, height = 4.05, units = "in", dpi = 800)
 
-# 4. USA extreme heat events ####
+# 5. USA extreme heat events 2016 - 2020 ####
+
 # Read in data 
 USA_EX <- read.csv("USAEX.csv", header=T)
 
