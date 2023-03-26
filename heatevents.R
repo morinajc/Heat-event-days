@@ -31,8 +31,22 @@ summer_count_100 <- subset(summer_count, n > 100 )
 summer_clean <-summer_count_100[!(summer_count_100$Station == "CHO" & summer_count_100$Year < 1999), ]         
 summer_clean2 <-summer_clean[!(summer_clean$Station == "NYG" & summer_clean$Year < 1985), ]         
 
-# Convert year to numeric
+# Convert year to numeric, only using the df with years removed (clean2) when plotting by station 
+summer_count_100$Year <-as.numeric(summer_count_100$Year)
 summer_clean2$Year <-as.numeric(summer_clean2$Year)
+
+# Plot all counts by year
+combo <- ggplot(summer_count_100, aes(x= Year, y = count))+
+  geom_smooth(se=FALSE)+
+  geom_point(shape = 21, fill = "white", color = "black", size=2)+
+  scale_y_continuous(expand = c(0,0),limits = c(0,120,30))+
+  scale_x_continuous(breaks=c(1970, 1980, 1990, 2000, 2010,2020))+
+  labs(x=" ",
+       y="Annual Heat Events (days)",
+       title="Virginia heat events increased after 2000",
+       subtitle="Humid tropical and dry tropical days during May - September in Virginia from 1970",
+       caption="Data from Spatial Synoptic Classification v3.0")+
+  theme_fivethirtyeight()
 
 # Plot by station
 VA_50_plot <- ggplot(summer_clean2, aes(x=Year, y= count, group=1 ))+
@@ -49,19 +63,6 @@ VA_50_plot <- ggplot(summer_clean2, aes(x=Year, y= count, group=1 ))+
               formula = y ~ x,
               geom = "smooth")+
   stat_regline_equation()
-
-# Plot all counts by year
-combo <- ggplot(summer_count_100_e, aes(x= Year, y = count))+
-  geom_smooth()+
-  geom_point(shape = 21, fill = "white", color = "black", size=2)+
-  scale_y_continuous(expand = c(0,0),limits = c(0,120,30))+
-  theme_fivethirtyeight()+
-  scale_x_continuous(breaks=c(1970, 1980, 1990, 2000, 2010,2020))+
-  labs(x=" ",
-       y="Annual Heat Events (days)",
-       title="Summer heat events increased significantly after 2000",
-       subtitle="Humid and dry tropical days in Virginia since 1970",
-       caption="Data from Spatial Synoptic Classification v3.0")
 
 # 2. VA heat events 2016 - 2020 ####
 # Read in VA heat data by station
